@@ -1,5 +1,7 @@
 # Code Diff — Obsidian plugin
 
+![](docs/example.png)
+
 Render code diffs in the middle of your notes, using
 [`@pierre/diffs`](https://diffs.com) as the rendering engine.
 
@@ -51,7 +53,6 @@ before/after syntax. Plain unified diffs (`---`/`+++`/`@@`) work too.
 
 ````markdown
 ```code-diff
----
 repo: ../my-project
 from: main
 to: feature/foo
@@ -62,7 +63,6 @@ to: feature/foo
 
 ````markdown
 ```code-diff
----
 repo: ../my-project
 commit: abc123
 ```

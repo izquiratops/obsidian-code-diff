@@ -78,6 +78,16 @@ const KNOWN_KEYS = new Set([
 	'darkTheme',
 ]);
 
+/**
+ * Returns true when a parsed YAML value is a mapping that contains at least one
+ * known config key. Used to detect implicit frontmatter when no --- fences are
+ * present.
+ */
+export function looksLikeConfig(parsed: unknown): parsed is Record<string, unknown> {
+	if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return false;
+	return Object.keys(parsed).some((k) => KNOWN_KEYS.has(k));
+}
+
 function asString(value: unknown, key: string): string {
 	if (typeof value === 'string') return value;
 	if (typeof value === 'number' || typeof value === 'boolean') return String(value);

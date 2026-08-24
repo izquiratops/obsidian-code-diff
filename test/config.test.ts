@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { splitBlock } from '../src/config/frontmatter.ts';
-import { ConfigError, normalizeConfig } from '../src/config/schema.ts';
+import { ConfigError, looksLikeConfig, normalizeConfig } from '../src/config/schema.ts';
 
 test('a block with no frontmatter is all body', () => {
 	const { frontmatter, body } = splitBlock('diff --git a/x b/x\n');
@@ -90,4 +90,25 @@ test('commit cannot be combined with from/to', () => {
 
 test('a YAML list at the top level is rejected', () => {
 	assert.throws(() => normalizeConfig(['view']), ConfigError);
+});
+
+// --- looksLikeConfig (implicit frontmatter detection) ---
+
+test('looksLikeConfig returns true for mappings with known keys', () => {
+	assert.ok(looksLikeConfig({ repo: '../project' }));
+	assert.ok(looksLikeConfig({ view: 'split', theme: 'dark' }));
+	assert.ok(looksLikeConfig({ from: 'main', to: 'feature' }));
+});
+
+test('looksLikeConfig returns false for null, arrays, strings, and objects with no known keys', () => {
+	assert.ok(!looksLikeConfig(null));
+	assert.ok(!looksLikeConfig(['view']));
+	assert.ok(!looksLikeConfig('view: split'));
+	assert.ok(!looksLikeConfig({}));
+	assert.ok(!looksLikeConfig({ foo: 'bar', baz: 1 }));
+});
+
+test('looksLikeConfig returns false for numbers and booleans', () => {
+	assert.ok(!looksLikeConfig(42));
+	assert.ok(!looksLikeConfig(true));
 });
