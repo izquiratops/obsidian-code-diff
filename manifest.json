@@ -1,0 +1,10 @@
+{
+  "id": "code-diff",
+  "name": "Code Diff",
+  "version": "0.1.5",
+  "minAppVersion": "1.5.0",
+  "description": "Render code diffs embedded in the middle of your notes, from pasted patches or from a Git repository.",
+  "author": "Jordi Izquierdo",
+  "isDesktopOnly": true,
+  "main": "dist/main.js"
+}

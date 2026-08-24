@@ -1,0 +1,87 @@
+/* Code Diff plugin */
+
+.code-diff-block {
+  margin: var(--size-4-2) 0;
+}
+
+.code-diff-surface {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+}
+
+/* The diff itself lives in a shadow root, so it needs an explicit box here. */
+.code-diff-file {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  font-size: var(--font-smaller);
+}
+
+/* Loading / notice / error states */
+
+.code-diff-state {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  padding: var(--size-4-3);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  color: var(--text-muted);
+  font-size: var(--font-smaller);
+}
+
+.code-diff-state-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.code-diff-state-loading .code-diff-state-icon {
+  animation: code-diff-spin 1s linear infinite;
+}
+
+@keyframes code-diff-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.code-diff-state-error {
+  border-color: var(--text-error);
+  color: var(--text-error);
+}
+
+/* Diagnostics and warnings */
+
+.code-diff-details {
+  margin-top: var(--size-4-2);
+  font-size: var(--font-smallest);
+  color: var(--text-muted);
+}
+
+.code-diff-details > summary {
+  cursor: pointer;
+}
+
+.code-diff-details-body {
+  margin: var(--size-4-2) 0 0;
+  max-height: 18em;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.code-diff-warnings {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--size-4-2);
+  margin-top: var(--size-4-2);
+  color: var(--text-warning);
+  font-size: var(--font-smallest);
+}
+
+.code-diff-warnings ul {
+  margin: 0;
+  padding-left: var(--size-4-4);
+}
