@@ -12,6 +12,7 @@ export interface CodeDiffSettings {
 	defaultLineNumbers: boolean;
 	defaultWrap: boolean;
 	defaultHighlight: HighlightMode;
+	defaultFontFamily: string;
 	gitTimeoutSeconds: number;
 }
 
@@ -22,6 +23,7 @@ export const DEFAULT_SETTINGS: CodeDiffSettings = {
 	defaultLineNumbers: true,
 	defaultWrap: false,
 	defaultHighlight: 'word',
+	defaultFontFamily: '',
 	gitTimeoutSeconds: 30,
 };
 
@@ -67,8 +69,7 @@ export class CodeDiffSettingTab extends PluginSettingTab {
 					}),
 			);
 
-		new Setting(containerEl).setName('Default rendering').setHeading();
-		new Setting(containerEl).setDesc('Used when a block does not set the option itself.');
+		new Setting(containerEl).setName('Rendering').setHeading();
 
 		new Setting(containerEl).setName('View').addDropdown((dropdown) =>
 			dropdown
@@ -119,6 +120,19 @@ export class CodeDiffSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.defaultHighlight)
 					.onChange(async (value) => {
 						this.plugin.settings.defaultHighlight = value as HighlightMode;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName('Font family')
+			.setDesc('CSS font-family used for the diff content. Defaults to the font Obsidian uses for code blocks.')
+			.addText((text) =>
+				text
+					.setPlaceholder('Current Obsidian\'s Monospace font')
+					.setValue(this.plugin.settings.defaultFontFamily)
+					.onChange(async (value) => {
+						this.plugin.settings.defaultFontFamily = value.trim();
 						await this.plugin.saveSettings();
 					}),
 			);

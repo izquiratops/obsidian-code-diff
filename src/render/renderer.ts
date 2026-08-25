@@ -39,6 +39,9 @@ export class DiffRenderer {
 			const container = this.host.createEl('diffs-container' as keyof HTMLElementTagNameMap, {
 				cls: 'code-diff-file',
 			});
+			if (this.config.fontFamily) {
+				container.style.setProperty('--diffs-font-family', this.config.fontFamily);
+			}
 			const instance = new FileDiff(this.buildOptions());
 			instance.render({ fileDiff: file, fileContainer: container });
 			this.instances.push(instance);
@@ -69,10 +72,6 @@ export class DiffRenderer {
 			const parsed: ParsedPatch = processPatch(patch, undefined, true);
 			files = parsed.files;
 		} catch (error) {
-			// `catch` is typed `unknown` because JS allows throwing any value, and
-			// this one crosses a third-party boundary. `processPatch` is only known
-			// to throw Errors, so the String() arm is defensive rather than a path
-			// we expect to hit.
 			throw new DiffError('Invalid diff', error instanceof Error ? error.message : String(error));
 		}
 

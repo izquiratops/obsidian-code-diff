@@ -119,6 +119,8 @@ export class CodeDiffBlock extends MarkdownRenderChild {
 			lineNumbers: settings.defaultLineNumbers,
 			wrap: settings.defaultWrap,
 			highlight: settings.defaultHighlight,
+			/* Empty fontFamily resolves the value at runtime to match the current Obsidian's monospace font */
+			fontFamily: settings.defaultFontFamily || 'var(--font-monospace)',
 		});
 
 		const hasBody = body.trim() !== '';

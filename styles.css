@@ -19,7 +19,7 @@
   font-size: var(--font-smaller);
 }
 
-/* Loading / notice / error states */
+/* ~~~ Loading / notice / error states ~~~ */
 
 .code-diff-state {
   display: flex;
@@ -52,7 +52,7 @@
   color: var(--text-error);
 }
 
-/* Diagnostics and warnings */
+/* ~~~ Diagnostics and warnings ~~~ */
 
 .code-diff-details {
   margin-top: var(--size-4-2);

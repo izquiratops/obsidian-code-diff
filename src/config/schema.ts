@@ -33,6 +33,8 @@ export interface DiffConfig {
 	/** Explicit Shiki theme overrides. */
 	lightTheme?: string;
 	darkTheme?: string;
+	/** CSS `font-family` for the diff content. Defaults to Obsidian's monospace font. */
+	fontFamily?: string;
 }
 
 export const DEFAULT_CONFIG: DiffConfig = {
@@ -76,6 +78,7 @@ const KNOWN_KEYS = new Set([
 	'context',
 	'lightTheme',
 	'darkTheme',
+	'fontFamily',
 ]);
 
 /**
@@ -185,6 +188,10 @@ export function normalizeConfig(raw: unknown, defaults: Partial<DiffConfig> = {}
 
 	if (entries.darkTheme !== undefined) {
 		config.darkTheme = asString(entries.darkTheme, 'darkTheme').trim();
+	}
+
+	if (entries.fontFamily !== undefined) {
+		config.fontFamily = asString(entries.fontFamily, 'fontFamily').trim();
 	}
 
 	if (entries.context !== undefined) {
