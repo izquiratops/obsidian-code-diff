@@ -73,7 +73,7 @@ test('paths accepts a single value or a list', () => {
 test('invalid enum values are rejected with a readable message', () => {
 	assert.throws(() => normalizeConfig({ view: 'diagonal' }), (error: unknown) => {
 		assert.ok(error instanceof ConfigError);
-		assert.match(error.message, /unified, split/);
+		assert.match((error as ConfigError).message, /unified, split/);
 		return true;
 	});
 });
@@ -111,4 +111,20 @@ test('looksLikeConfig returns false for null, arrays, strings, and objects with 
 test('looksLikeConfig returns false for numbers and booleans', () => {
 	assert.ok(!looksLikeConfig(42));
 	assert.ok(!looksLikeConfig(true));
+});
+
+test('maxHeight accepts CSS lengths and reads a bare number as pixels', () => {
+	assert.equal(normalizeConfig({ maxHeight: '40vh' }).config.maxHeight, '40vh');
+	assert.equal(normalizeConfig({ maxHeight: '480px' }).config.maxHeight, '480px');
+	assert.equal(normalizeConfig({ maxHeight: 480 }).config.maxHeight, '480px');
+});
+
+test('maxHeight `none` leaves the diff uncapped', () => {
+	assert.equal(normalizeConfig({ maxHeight: 'none' }).config.maxHeight, undefined);
+	assert.equal(normalizeConfig({ maxHeight: '' }).config.maxHeight, undefined);
+});
+
+test('maxHeight rejects a unit the browser would silently drop', () => {
+	assert.throws(() => normalizeConfig({ maxHeight: 'tall' }), ConfigError);
+	assert.throws(() => normalizeConfig({ maxHeight: '60 vh' }), ConfigError);
 });

@@ -1,7 +1,7 @@
 import { MarkdownRenderChild, type App, type MarkdownPostProcessorContext } from 'obsidian';
 
 import { parseBlock } from './config/block.ts';
-import { ConfigError, type DiffConfig } from './config/schema.ts';
+import { ConfigError, DEFAULT_CONFIG, normalizeMaxHeight, type DiffConfig } from './config/schema.ts';
 import { DiffError, toDiffError } from './errors.ts';
 import { DiffRenderer } from './render/renderer.ts';
 import { detectObsidianTheme, resolveThemeType, type ResolvedThemeType } from './render/theme.ts';
@@ -121,6 +121,7 @@ export class CodeDiffBlock extends MarkdownRenderChild {
 			highlight: settings.defaultHighlight,
 			/* Empty fontFamily resolves the value at runtime to match the current Obsidian's monospace font */
 			fontFamily: settings.defaultFontFamily || 'var(--font-monospace)',
+			maxHeight: defaultMaxHeight(settings.defaultMaxHeight),
 		});
 
 		const hasBody = body.trim() !== '';
@@ -181,6 +182,20 @@ export class CodeDiffBlock extends MarkdownRenderChild {
 		}
 
 		return vaultPath;
+	}
+}
+
+/**
+ * TODO: What is a "data.json"?
+ * The settings tab validates before saving, so a bad value here can only come
+ * from a hand-edited `data.json`. Falling back beats failing every block in the
+ * vault with a message about a setting the note does not mention.
+ */
+function defaultMaxHeight(stored: string): string | undefined {
+	try {
+		return normalizeMaxHeight(stored);
+	} catch {
+		return DEFAULT_CONFIG.maxHeight;
 	}
 }
 

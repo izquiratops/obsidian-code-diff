@@ -35,6 +35,11 @@ export interface DiffConfig {
 	darkTheme?: string;
 	/** CSS `font-family` for the diff content. Defaults to Obsidian's monospace font. */
 	fontFamily?: string;
+	/**
+	 * CSS length capping the height of the diff's scroll region. Empty means no cap,
+	 * which also switches off the virtualisation.
+	 */
+	maxHeight?: string;
 }
 
 export const DEFAULT_CONFIG: DiffConfig = {
@@ -44,6 +49,7 @@ export const DEFAULT_CONFIG: DiffConfig = {
 	wrap: false,
 	fileHeader: true,
 	highlight: 'word',
+	maxHeight: '60vh',
 };
 
 const VIEW_ALIASES: Record<string, ViewMode> = {
@@ -79,6 +85,7 @@ const KNOWN_KEYS = new Set([
 	'lightTheme',
 	'darkTheme',
 	'fontFamily',
+	'maxHeight',
 ]);
 
 /**
@@ -108,6 +115,23 @@ function asEnum<T extends string>(value: unknown, key: string, allowed: readonly
 	const raw = asString(value, key).toLowerCase();
 	if ((allowed as readonly string[]).includes(raw)) return raw as T;
 	throw new ConfigError(`\`${key}\` must be one of: ${allowed.join(', ')}.`);
+}
+
+/** CSS lengths the diff height may be capped at, plus `none` to uncap it. */
+const MAX_HEIGHT = /^\d+(?:\.\d+)?(?:px|em|rem|vh|svh|dvh|lvh|%|ch)$/;
+
+/**
+ * Accepts a CSS length or `none`. A bare number is read as pixels, which is
+ * what someone writing `maxHeight: 400` almost certainly means.
+ */
+export function normalizeMaxHeight(raw: string): string | undefined {
+	const value = raw.trim().toLowerCase();
+	if (value === '' || value === 'none' || value === '0') return undefined;
+	if (/^\d+(?:\.\d+)?$/.test(value)) return `${value}px`;
+	if (MAX_HEIGHT.test(value)) return value;
+	throw new ConfigError(
+		'`maxHeight` must be a CSS length such as `60vh`, `480px`, or `none` to let the diff grow with the note.',
+	);
 }
 
 /**
@@ -192,6 +216,10 @@ export function normalizeConfig(raw: unknown, defaults: Partial<DiffConfig> = {}
 
 	if (entries.fontFamily !== undefined) {
 		config.fontFamily = asString(entries.fontFamily, 'fontFamily').trim();
+	}
+
+	if (entries.maxHeight !== undefined) {
+		config.maxHeight = normalizeMaxHeight(asString(entries.maxHeight, 'maxHeight'));
 	}
 
 	if (entries.context !== undefined) {
