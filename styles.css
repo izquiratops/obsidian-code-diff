@@ -25,6 +25,12 @@
   outline: none;
 }
 
+/* Match the background from the diffs editor to the container */
+.code-diff-scroll diffs-container {
+  --diffs-light-bg: var(--background-primary);
+  --diffs-dark-bg: var(--background-primary);
+}
+
 /* ~~~ Loading / notice / error states ~~~ */
 
 .code-diff-state {
