@@ -2,6 +2,8 @@ import esbuild from 'esbuild';
 import process from 'node:process';
 import builtins from 'builtin-modules';
 
+import { shikiSubset } from './scripts/shiki-subset.mjs';
+
 const banner = `/* Code Diff plugin for Obsidian - generated bundle, do not edit. */`;
 const prod = process.argv[2] === 'production';
 
@@ -26,6 +28,7 @@ const ctx = await esbuild.context({
     ...builtins,
     ...builtins.map((m) => `node:${m}`),
   ],
+  plugins: [shikiSubset()],
   format: 'cjs',
   target: 'es2022',
   logLevel: 'info',

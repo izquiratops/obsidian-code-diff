@@ -1,8 +1,10 @@
+import type { FileDiffMetadata } from '@pierre/diffs';
 import { MarkdownRenderChild, type App, type MarkdownPostProcessorContext } from 'obsidian';
 
 import { parseBlock } from './config/block.ts';
 import { ConfigError, DEFAULT_CONFIG, normalizeMaxHeight, type DiffConfig } from './config/schema.ts';
 import { DiffError, toDiffError } from './errors.ts';
+import { unbundledLanguages } from './render/languages.ts';
 import { DiffRenderer } from './render/renderer.ts';
 import { detectObsidianTheme, resolveThemeType, type ResolvedThemeType } from './render/theme.ts';
 import type { CodeDiffSettings } from './settings.ts';
@@ -76,6 +78,10 @@ export class CodeDiffBlock extends MarkdownRenderChild {
 			warnings = parsed.warnings;
 			this.config = parsed.config;
 
+			if (this.config.fontFamily) {
+				this.containerEl.style.setProperty('--diffs-font-family', this.config.fontFamily);
+			}
+
 			renderLoading(this.containerEl);
 
 			const resolved = await parsed.source.resolve(this.abort.signal);
@@ -94,7 +100,8 @@ export class CodeDiffBlock extends MarkdownRenderChild {
 				parsed.config,
 				resolveThemeType(parsed.config, this.themeType),
 			);
-			this.renderer.render(resolved.patch);
+			const files = this.renderer.render(resolved.patch);
+			warnings.push(...highlightWarnings(files));
 			appendWarnings(this.containerEl, warnings);
 		} catch (error) {
 			if (this.abort.signal.aborted || isAbortError(error)) return;
@@ -197,6 +204,21 @@ function defaultMaxHeight(stored: string): string | undefined {
 	} catch {
 		return DEFAULT_CONFIG.maxHeight;
 	}
+}
+
+/**
+ * The bundle ships a subset of Shiki's grammars (see `render/languages.ts`), so
+ * a file in an unlisted language renders uncoloured. Saying which language is
+ * missing turns a silently grey diff into something actionable.
+ */
+function highlightWarnings(files: FileDiffMetadata[]): string[] {
+	const missing = unbundledLanguages(files);
+	if (missing.length === 0) return [];
+
+	return [
+		`No bundled syntax highlighting for ${missing.map((lang) => `\`${lang}\``).join(', ')}; ` +
+			'those files render as plain text.',
+	];
 }
 
 function isAbortError(error: unknown): boolean {

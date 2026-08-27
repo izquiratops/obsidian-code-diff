@@ -84,12 +84,24 @@ commit: abc123
 | `wrap` | boolean | `false` | Wrap long lines instead of scrolling. |
 | `fileHeader` | boolean | `true` | Show the per-file header. |
 | `highlight` | `word`, `char`, `none` | `word` | Intra-line change highlighting. |
-| `lightTheme` / `darkTheme` | Shiki theme name | `pierre-light` / `pierre-dark` | Override the syntax theme. |
+| `lightTheme` / `darkTheme` | bundled theme name | `pierre-light` / `pierre-dark` | Override the syntax theme. See [Syntax highlighting](#syntax-highlighting). |
 | `fontFamily` | CSS `font-family` | Obsidian's monospace font | Font for the diff content. |
 | `maxHeight` | CSS length or `none` | `60vh` | Cap the height of the diff's scroll region. Use `none` to let it grow with the note. |
 
 Defaults for the presentation options can be set in the plugin settings; a block
 always wins over the setting.
+
+## Syntax highlighting
+
+Shiki ships 260 TextMate grammars and 75 themes, and an Obsidian plugin is a
+single bundled `main.js` — so shipping all of them would mean an 11 MB plugin,
+loaded on every app start. This one bundles a subset instead: 74 languages and
+Pierre's 10 themes, which is 3.8 MB.
+
+- A file whose language is not bundled still renders. It comes out uncoloured,
+  and the block adds a warning naming the language.
+- The available names are `pierre-light` / `pierre-dark` plus their `-soft`, `-vibrant`,
+  `-protanopia-deuteranopia` and `-tritanopia` variants.
 
 ## States
 

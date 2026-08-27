@@ -1,4 +1,4 @@
-import { CodeView, type CodeViewItem, type CodeViewOptions } from '@pierre/diffs';
+import { CodeView, type CodeViewItem, type CodeViewOptions, type FileDiffMetadata } from '@pierre/diffs';
 
 import type { DiffConfig } from '../config/schema.ts';
 import { fileItemId, parsePatch } from './patch.ts';
@@ -22,19 +22,15 @@ export class DiffRenderer {
 		this.themeType = themeType;
 	}
 
-	/** Renders the patch. Returns the number of files rendered. */
-	render(patch: string): number {
+	/** Renders the patch. Returns the files it rendered, in patch order. */
+	render(patch: string): FileDiffMetadata[] {
 		const files = parsePatch(patch);
 
 		this.destroy();
 		this.host.empty();
 
 		const scroller = this.host.createDiv({ cls: 'code-diff-scroll' });
-		if (this.config.fontFamily) {
-			// Custom properties cross shadow boundaries, so setting this on the
-			// scroll root reaches every <diffs-container> CodeView mounts inside it.
-			scroller.style.setProperty('--diffs-font-family', this.config.fontFamily);
-		}
+
 		if (this.config.maxHeight) {
 			scroller.style.setProperty('--code-diff-max-height', this.config.maxHeight);
 		}
@@ -52,7 +48,7 @@ export class DiffRenderer {
 		);
 		this.viewer = viewer;
 
-		return files.length;
+		return files;
 	}
 
 	/** Re-renders with a new theme type without re-parsing the diff. */

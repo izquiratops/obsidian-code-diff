@@ -13,8 +13,8 @@
   "type": "module",
   "main": "dist/main.js",
   "scripts": {
-    "dev": "node esbuild.config.mjs",
-    "build": "node esbuild.config.mjs production",
+    "dev": "tsx esbuild.config.mjs",
+    "build": "tsx esbuild.config.mjs production",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test \"test/*.test.ts\"",
     "install-plugin": "node scripts/install.mjs"
