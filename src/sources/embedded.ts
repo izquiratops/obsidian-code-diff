@@ -1,4 +1,5 @@
 import { DiffError } from '../errors.ts';
+import { sanitizeDiff } from './sanitize.ts';
 import type { DiffSource, ResolvedDiff } from './types.ts';
 
 const GIT_HEADER = /^diff --git /m;
@@ -16,7 +17,7 @@ export class EmbeddedDiffSource implements DiffSource {
 	constructor(private readonly patch: string) {}
 
 	async resolve(): Promise<ResolvedDiff> {
-		const patch = this.patch;
+		const patch = sanitizeDiff(this.patch);
 		if (patch.trim() === '') {
 			throw new DiffError('Empty diff', 'The block has no configuration and no diff content.');
 		}
