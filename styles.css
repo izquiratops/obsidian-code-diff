@@ -25,10 +25,9 @@
   outline: none;
 }
 
-/* Match the background from the diffs editor to the container */
-.code-diff-scroll diffs-container {
-  --diffs-light-bg: var(--background-primary);
-  --diffs-dark-bg: var(--background-primary);
+/* Override nasty margin from an inline rule I have no idea how target */
+.code-diff-scroll > div {
+  margin-top: 0 !important;
 }
 
 /* ~~~ Loading / notice / error states ~~~ */
