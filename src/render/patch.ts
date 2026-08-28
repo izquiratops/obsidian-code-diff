@@ -24,10 +24,11 @@ export function parsePatch(patch: string): FileDiffMetadata[] {
 }
 
 /**
- * TODO: Ask for an example
  * Identity of a file inside one rendered block. `CodeView` needs it to be
  * stable and unique; the index keeps repeated names apart, which a patch can
- * legitimately contain (a rename touching the same path twice, for instance).
+ * legitimately contain (a rename touching the same path twice, for instance —
+ * see "item ids stay unique when a patch repeats a file name" in
+ * `test/patch.test.ts`).
  */
 export function fileItemId(file: FileDiffMetadata, index: number): string {
 	return `${index}:${file.name}`;

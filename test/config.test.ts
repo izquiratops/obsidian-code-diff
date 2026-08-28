@@ -3,6 +3,7 @@ import { test } from 'node:test';
 
 import { splitBlock } from '../src/config/frontmatter.ts';
 import { ConfigError, looksLikeConfig, normalizeConfig } from '../src/config/schema.ts';
+import { describeYamlError } from '../src/config/yaml-error.ts';
 
 test('a block with no frontmatter is all body', () => {
 	const { frontmatter, body } = splitBlock('diff --git a/x b/x\n');
@@ -127,4 +128,20 @@ test('maxHeight `none` leaves the diff uncapped', () => {
 test('maxHeight rejects a unit the browser would silently drop', () => {
 	assert.throws(() => normalizeConfig({ maxHeight: 'tall' }), ConfigError);
 	assert.throws(() => normalizeConfig({ maxHeight: '60 vh' }), ConfigError);
+});
+
+// --- describeYamlError (broken frontmatter / broken body-as-config) ---
+
+test('describeYamlError keeps only the first line of a multi-line YAML error', () => {
+	const error = new Error('bad indentation of a mapping entry\n  at line 3, column 5\n\n3 | foo:\n');
+	assert.equal(describeYamlError(error), 'bad indentation of a mapping entry');
+});
+
+test('describeYamlError passes through a single-line message unchanged', () => {
+	assert.equal(describeYamlError(new Error('unexpected end of the stream')), 'unexpected end of the stream');
+});
+
+test('describeYamlError stringifies a non-Error throw', () => {
+	assert.equal(describeYamlError('boom'), 'boom');
+	assert.equal(describeYamlError(42), '42');
 });

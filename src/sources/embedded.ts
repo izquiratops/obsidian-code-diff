@@ -1,7 +1,6 @@
 import { DiffError } from '../errors.ts';
 import type { DiffSource, ResolvedDiff } from './types.ts';
 
-// TODO: Show an example of code-diff block for each one of those regexp
 const GIT_HEADER = /^diff --git /m;
 const UNIFIED_HEADER = /^--- (?:a\/|\/dev\/null|"a\/)/m;
 const HUNK_HEADER = /^@@ -\d+(?:,\d+)? \+\d+(?:,\d+)? @@/m;

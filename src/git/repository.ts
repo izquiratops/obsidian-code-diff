@@ -35,7 +35,10 @@ export class LocalRepository {
 			throw new DiffError('Invalid Git repository', `\`${this.path}\` exists but is not a Git repository.`);
 		}
 
-		// TODO: Conditions rely on the message written in English. There's any other way to assert the response status?
+		// Git gives the same exit code (128) for all of these, so the stderr text
+		// is the only way to tell them apart. Matching English text is safe here
+		// because `runGit` (git/runner.ts) always sets `LC_ALL: 'C'`, so Git's
+		// message is not affected by the user's locale.
 		if (
 			stderr.includes('no such file or directory') ||
 			stderr.includes('cannot change to') ||

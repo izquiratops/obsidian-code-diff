@@ -3,6 +3,7 @@ import { MarkdownRenderChild, type App, type MarkdownPostProcessorContext } from
 
 import { parseBlock } from './config/block.ts';
 import { ConfigError, DEFAULT_CONFIG, normalizeMaxHeight, type DiffConfig } from './config/schema.ts';
+import { decideSource } from './config/source.ts';
 import { DiffError, toDiffError } from './errors.ts';
 import { unbundledLanguages } from './render/languages.ts';
 import { DiffRenderer } from './render/renderer.ts';
@@ -131,36 +132,19 @@ export class CodeDiffBlock extends MarkdownRenderChild {
 			maxHeight: defaultMaxHeight(settings.defaultMaxHeight),
 		});
 
-		const hasBody = body.trim() !== '';
-		const hasGitConfig =
-			config.repo !== undefined ||
-			config.from !== undefined ||
-			config.to !== undefined ||
-			config.commit !== undefined;
+		const decision = decideSource(config, body);
 
-		if (hasBody && hasGitConfig) {
-			warnings.push('The block has both a diff body and Git options; the embedded diff was used.');
-		}
-
-		if (hasBody) {
+		if (decision.kind === 'embedded') {
+			if (decision.warning) warnings.push(decision.warning);
 			return { config, warnings, source: new EmbeddedDiffSource(body) };
-		}
-
-		if (!hasGitConfig) {
-			throw new ConfigError(
-				'The block is empty. Paste a diff into it, or set `repo` together with `from`/`to` or `commit`.',
-			);
-		}
-
-		if (config.repo === undefined) {
-			throw new ConfigError('`repo` is required when generating a diff from Git.');
 		}
 
 		return {
 			config,
 			warnings,
 			source: new GitDiffSource(
-				config.repo,
+				// decideSource only returns 'git' once `config.repo` is confirmed set.
+				config.repo!,
 				{
 					from: config.from,
 					to: config.to,
@@ -193,10 +177,8 @@ export class CodeDiffBlock extends MarkdownRenderChild {
 }
 
 /**
- * TODO: What is a "data.json"?
- * The settings tab validates before saving, so a bad value here can only come
- * from a hand-edited `data.json`. Falling back beats failing every block in the
- * vault with a message about a setting the note does not mention.
+ * The settings tab validates before saving, so a bad value here can
+ * only come from a hand-edited `.obsidian/plugins/code-diff/data.json`.
  */
 function defaultMaxHeight(stored: string): string | undefined {
 	try {
