@@ -5,25 +5,12 @@
 Show code diffs inside your notes. This plugin uses
 [`@pierre/diffs`](https://diffs.com) as the (beautiful) rendering engine.
 
-> Status: early! Embedded diffs and local Git repositories work. Remote
-> repositories and caching are not implemented yet.
+> ⚠️ Status: early!
+> Embedded diffs and local Git repositories work. Remote repositories and caching are not implemented yet.
 
 Repository based diffs (using the repo option) are built with `git`, so
 they only run on the Desktop app. On mobile and in browsers, embed the diff
 directly in the code block instead.
-
-## Install for development
-
-```bash
-npm install
-npm run build
-node scripts/install.mjs "/path/to/Vault"
-```
-
-Then reload Obsidian. Enable **Code Diff** under *Settings → Community plugins*.
-
-During development, run `npm run dev`. It rebuilds the plugin on change.
-Then run the install script again, or just symlink the folder
 
 ## Syntax
 
@@ -93,3 +80,16 @@ commit: abc123
 
 You can set defaults for the presentation options in the plugin settings.
 A block always wins over the setting.
+
+## Install for development
+
+```bash
+npm install
+npm run build
+node scripts/install.mjs "/path/to/Vault"
+```
+
+Then reload Obsidian. Enable **Code Diff** under *Settings → Community plugins*.
+
+During development, run `npm run dev`. It rebuilds the plugin on change.
+Then run the install script again, or just symlink the folder
