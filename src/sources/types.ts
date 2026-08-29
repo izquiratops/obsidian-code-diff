@@ -12,9 +12,13 @@ export interface ResolvedDiff {
 
 export interface DiffSource {
 	/**
-	 * TODO: What does this even mean?
-	 * Produces the raw diff. Implementations must honour `signal` so that a
-	 * block removed from the view stops doing work.
+	 * Produces the raw diff. Implementations must honour `signal`: pass it
+	 * through to any async work they start (e.g. `GitDiffSource` forwards it to
+	 * `execFile` via `GitRunOptions` in `git/runner.ts`), so that a spawned Git
+	 * process is killed rather than left running when the block is removed from
+	 * the view (`CodeDiffBlock.onunload` aborts on unload). Sources with no
+	 * async work of their own, like `EmbeddedDiffSource`, have nothing to abort
+	 * and can ignore it.
 	 */
 	resolve(signal: AbortSignal): Promise<ResolvedDiff>;
 	/** Stable identity of this source, used for diagnostics and (later) caching. */

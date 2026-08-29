@@ -1,5 +1,5 @@
 import { PluginSettingTab, Setting, type App } from 'obsidian';
-import type { HighlightMode, ThemeMode, ViewMode } from './config/schema.ts';
+import { normalizeMaxHeight, type HighlightMode, type ThemeMode, type ViewMode } from './config/schema.ts';
 import type CodeDiffPlugin from './main.ts';
 
 /** Where relative `repo` paths are resolved from. */
@@ -13,6 +13,7 @@ export interface CodeDiffSettings {
 	defaultWrap: boolean;
 	defaultHighlight: HighlightMode;
 	defaultFontFamily: string;
+	defaultMaxHeight: string;
 	gitTimeoutSeconds: number;
 }
 
@@ -24,6 +25,7 @@ export const DEFAULT_SETTINGS: CodeDiffSettings = {
 	defaultWrap: false,
 	defaultHighlight: 'word',
 	defaultFontFamily: '',
+	defaultMaxHeight: '60vh',
 	gitTimeoutSeconds: 30,
 };
 
@@ -133,6 +135,27 @@ export class CodeDiffSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.defaultFontFamily)
 					.onChange(async (value) => {
 						this.plugin.settings.defaultFontFamily = value.trim();
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName('Maximum height')
+			.setDesc(
+				'A diff taller than this scrolls inside the block, and only the visible lines are rendered. ' +
+					'Use `none` to let every diff grow with the note.',
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder('60vh')
+					.setValue(this.plugin.settings.defaultMaxHeight)
+					.onChange(async (value) => {
+						try {
+							normalizeMaxHeight(value);
+						} catch {
+							return;
+						}
+						this.plugin.settings.defaultMaxHeight = value.trim();
 						await this.plugin.saveSettings();
 					}),
 			);

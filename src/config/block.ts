@@ -1,6 +1,7 @@
 import { parseYaml } from 'obsidian';
 import { splitBlock } from './frontmatter.ts';
 import { ConfigError, looksLikeConfig, normalizeConfig, type ConfigParseResult, type DiffConfig } from './schema.ts';
+import { describeYamlError } from './yaml-error.ts';
 
 export interface ParsedBlock extends ConfigParseResult {
 	body: string;
@@ -40,9 +41,4 @@ export function parseBlock(source: string, defaults: Partial<DiffConfig> = {}): 
 
 	const { config, warnings } = normalizeConfig(rawConfig, defaults);
 	return { config, warnings, body };
-}
-
-function describeYamlError(error: unknown): string {
-	if (error instanceof Error) return error.message.split('\n')[0] ?? error.message;
-	return String(error);
 }

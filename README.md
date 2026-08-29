@@ -84,23 +84,9 @@ commit: abc123
 | `wrap` | boolean | `false` | Wrap long lines instead of scrolling. |
 | `fileHeader` | boolean | `true` | Show the per-file header. |
 | `highlight` | `word`, `char`, `none` | `word` | Intra-line change highlighting. |
-| `lightTheme` / `darkTheme` | Shiki theme name | `pierre-light` / `pierre-dark` | Override the syntax theme. |
+| `lightTheme` / `darkTheme` | bundled theme name | `pierre-light` / `pierre-dark` | Override the syntax theme. See [Syntax highlighting](#syntax-highlighting). |
+| `fontFamily` | CSS `font-family` | Obsidian's monospace font | Font for the diff content. |
+| `maxHeight` | CSS length or `none` | `60vh` | Cap the height of the diff's scroll region. Use `none` to let it grow with the note. |
 
 Defaults for the presentation options can be set in the plugin settings; a block
 always wins over the setting.
-
-## States
-
-The block never fails silently. It shows `Loading diff…` while working, then one
-of: the diff, `No changes`, or an error headline such as `Diff not found`,
-`Repository not found`, `Invalid Git repository`, `Git is not available`, or
-`Invalid diff`. Command output and other diagnostics are tucked into a
-collapsed **Details** section rather than shown as the primary UI.
-
-## Development
-
-```bash
-npm run typecheck
-npm test
-npm run build
-```

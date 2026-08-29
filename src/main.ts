@@ -35,7 +35,6 @@ export default class CodeDiffPlugin extends Plugin {
 	}
 
 	/**
-	 * TODO: What?
 	 * Absolute on-disk path of the vault, used as the base for relative `repo`
 	 * paths. Null for vaults that are not backed by the local filesystem.
 	 */

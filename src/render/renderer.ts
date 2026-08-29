@@ -1,12 +1,7 @@
-// FileDiff renders into a <diffs-container> custom element, which is registered
-// by the package's `dist/components/web-components.js` module. We deliberately do
-// not import that path ourselves: it is not listed in the package's `exports` map,
-// so both TypeScript and esbuild refuse to resolve it. It is not needed anyway —
-// FileDiff.js imports it internally, so importing FileDiff registers the element.
-import { FileDiff, processPatch, type FileDiffOptions, type ParsedPatch, type FileDiffMetadata } from '@pierre/diffs';
+import { CodeView, type CodeViewItem, type CodeViewOptions, type FileDiffMetadata } from '@pierre/diffs';
 
 import type { DiffConfig } from '../config/schema.ts';
-import { DiffError } from '../errors.ts';
+import { fileItemId, parsePatch } from './patch.ts';
 import { resolveThemePair, type ResolvedThemeType } from './theme.ts';
 
 const HIGHLIGHT_MAP = {
@@ -15,9 +10,8 @@ const HIGHLIGHT_MAP = {
 	none: 'none',
 } as const;
 
-/** Renders a raw diff into a host element using `@pierre/diffs`. */
 export class DiffRenderer {
-	private instances: FileDiff[] = [];
+	private viewer: CodeView | null = null;
 	private themeType: ResolvedThemeType;
 
 	constructor(
@@ -28,61 +22,49 @@ export class DiffRenderer {
 		this.themeType = themeType;
 	}
 
-	/** Renders the patch. Returns the number of files rendered. */
-	render(patch: string): number {
-		const parsed = this.parse(patch);
+	/** Renders the patch. Returns the files it rendered, in patch order. */
+	render(patch: string): FileDiffMetadata[] {
+		const files = parsePatch(patch);
 
 		this.destroy();
 		this.host.empty();
 
-		for (const file of parsed) {
-			const container = this.host.createEl('diffs-container' as keyof HTMLElementTagNameMap, {
-				cls: 'code-diff-file',
-			});
-			if (this.config.fontFamily) {
-				container.style.setProperty('--diffs-font-family', this.config.fontFamily);
-			}
-			const instance = new FileDiff(this.buildOptions());
-			instance.render({ fileDiff: file, fileContainer: container });
-			this.instances.push(instance);
+		const scroller = this.host.createDiv({ cls: 'code-diff-scroll' });
+
+		if (this.config.maxHeight) {
+			scroller.style.setProperty('--code-diff-max-height', this.config.maxHeight);
 		}
 
-		return parsed.length;
+		const viewer = new CodeView(this.buildOptions());
+		viewer.setup(scroller);
+		viewer.setItems(
+			files.map(
+				(fileDiff, index): CodeViewItem => ({
+					id: fileItemId(fileDiff, index),
+					type: 'diff',
+					fileDiff,
+				}),
+			),
+		);
+		this.viewer = viewer;
+
+		return files;
 	}
 
 	/** Re-renders with a new theme type without re-parsing the diff. */
 	setThemeType(themeType: ResolvedThemeType): void {
 		if (themeType === this.themeType) return;
 		this.themeType = themeType;
-		for (const instance of this.instances) {
-			instance.setOptions(this.buildOptions());
-			instance.rerender();
-		}
+		// `setOptions` re-renders on its own once the viewer holds items.
+		this.viewer?.setOptions(this.buildOptions());
 	}
 
 	destroy(): void {
-		for (const instance of this.instances) instance.cleanUp();
-		this.instances = [];
+		this.viewer?.cleanUp();
+		this.viewer = null;
 	}
 
-	private parse(patch: string): FileDiffMetadata[] {
-		let files: FileDiffMetadata[];
-
-		try {
-			const parsed: ParsedPatch = processPatch(patch, undefined, true);
-			files = parsed.files;
-		} catch (error) {
-			throw new DiffError('Invalid diff', error instanceof Error ? error.message : String(error));
-		}
-
-		if (files.length === 0) {
-			throw new DiffError('Invalid diff', 'No file changes could be parsed out of the diff.');
-		}
-
-		return files;
-	}
-
-	private buildOptions(): FileDiffOptions<undefined> {
+	private buildOptions(): CodeViewOptions<undefined> {
 		const { config } = this;
 		return {
 			diffStyle: config.view,
@@ -93,6 +75,7 @@ export class DiffRenderer {
 			overflow: config.wrap ? 'wrap' : 'scroll',
 			lineDiffType: HIGHLIGHT_MAP[config.highlight],
 			hunkSeparators: 'line-info',
+			stickyHeaders: config.fileHeader,
 		};
 	}
 }

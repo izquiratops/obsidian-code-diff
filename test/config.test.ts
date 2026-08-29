@@ -3,6 +3,7 @@ import { test } from 'node:test';
 
 import { splitBlock } from '../src/config/frontmatter.ts';
 import { ConfigError, looksLikeConfig, normalizeConfig } from '../src/config/schema.ts';
+import { describeYamlError } from '../src/config/yaml-error.ts';
 
 test('a block with no frontmatter is all body', () => {
 	const { frontmatter, body } = splitBlock('diff --git a/x b/x\n');
@@ -73,7 +74,7 @@ test('paths accepts a single value or a list', () => {
 test('invalid enum values are rejected with a readable message', () => {
 	assert.throws(() => normalizeConfig({ view: 'diagonal' }), (error: unknown) => {
 		assert.ok(error instanceof ConfigError);
-		assert.match(error.message, /unified, split/);
+		assert.match((error as ConfigError).message, /unified, split/);
 		return true;
 	});
 });
@@ -111,4 +112,36 @@ test('looksLikeConfig returns false for null, arrays, strings, and objects with 
 test('looksLikeConfig returns false for numbers and booleans', () => {
 	assert.ok(!looksLikeConfig(42));
 	assert.ok(!looksLikeConfig(true));
+});
+
+test('maxHeight accepts CSS lengths and reads a bare number as pixels', () => {
+	assert.equal(normalizeConfig({ maxHeight: '40vh' }).config.maxHeight, '40vh');
+	assert.equal(normalizeConfig({ maxHeight: '480px' }).config.maxHeight, '480px');
+	assert.equal(normalizeConfig({ maxHeight: 480 }).config.maxHeight, '480px');
+});
+
+test('maxHeight `none` leaves the diff uncapped', () => {
+	assert.equal(normalizeConfig({ maxHeight: 'none' }).config.maxHeight, undefined);
+	assert.equal(normalizeConfig({ maxHeight: '' }).config.maxHeight, undefined);
+});
+
+test('maxHeight rejects a unit the browser would silently drop', () => {
+	assert.throws(() => normalizeConfig({ maxHeight: 'tall' }), ConfigError);
+	assert.throws(() => normalizeConfig({ maxHeight: '60 vh' }), ConfigError);
+});
+
+// --- describeYamlError (broken frontmatter / broken body-as-config) ---
+
+test('describeYamlError keeps only the first line of a multi-line YAML error', () => {
+	const error = new Error('bad indentation of a mapping entry\n  at line 3, column 5\n\n3 | foo:\n');
+	assert.equal(describeYamlError(error), 'bad indentation of a mapping entry');
+});
+
+test('describeYamlError passes through a single-line message unchanged', () => {
+	assert.equal(describeYamlError(new Error('unexpected end of the stream')), 'unexpected end of the stream');
+});
+
+test('describeYamlError stringifies a non-Error throw', () => {
+	assert.equal(describeYamlError('boom'), 'boom');
+	assert.equal(describeYamlError(42), '42');
 });

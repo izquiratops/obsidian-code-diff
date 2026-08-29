@@ -10,13 +10,24 @@
   gap: var(--size-4-2);
 }
 
-/* The diff itself lives in a shadow root, so it needs an explicit box here. */
-.code-diff-file {
+.code-diff-scroll {
   display: block;
-  overflow: hidden;
+  max-height: var(--code-diff-max-height, none);
+  overflow: auto;
+  overscroll-behavior: contain;
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-m);
   font-size: var(--font-smaller);
+}
+
+/* The viewer manages focus itself; the roaming tabindex must not draw a ring. */
+.code-diff-scroll:focus {
+  outline: none;
+}
+
+/* Override nasty margin from an inline rule I have no idea how target */
+.code-diff-scroll > div {
+  margin-top: 0 !important;
 }
 
 /* ~~~ Loading / notice / error states ~~~ */

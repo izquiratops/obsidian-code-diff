@@ -1,8 +1,11 @@
+import type { FileDiffMetadata } from '@pierre/diffs';
 import { MarkdownRenderChild, type App, type MarkdownPostProcessorContext } from 'obsidian';
 
 import { parseBlock } from './config/block.ts';
-import { ConfigError, type DiffConfig } from './config/schema.ts';
+import { ConfigError, DEFAULT_CONFIG, normalizeMaxHeight, type DiffConfig } from './config/schema.ts';
+import { decideSource } from './config/source.ts';
 import { DiffError, toDiffError } from './errors.ts';
+import { unbundledLanguages } from './render/languages.ts';
 import { DiffRenderer } from './render/renderer.ts';
 import { detectObsidianTheme, resolveThemeType, type ResolvedThemeType } from './render/theme.ts';
 import type { CodeDiffSettings } from './settings.ts';
@@ -76,6 +79,10 @@ export class CodeDiffBlock extends MarkdownRenderChild {
 			warnings = parsed.warnings;
 			this.config = parsed.config;
 
+			if (this.config.fontFamily) {
+				this.containerEl.style.setProperty('--diffs-font-family', this.config.fontFamily);
+			}
+
 			renderLoading(this.containerEl);
 
 			const resolved = await parsed.source.resolve(this.abort.signal);
@@ -94,7 +101,8 @@ export class CodeDiffBlock extends MarkdownRenderChild {
 				parsed.config,
 				resolveThemeType(parsed.config, this.themeType),
 			);
-			this.renderer.render(resolved.patch);
+			const files = this.renderer.render(resolved.patch);
+			warnings.push(...highlightWarnings(files));
 			appendWarnings(this.containerEl, warnings);
 		} catch (error) {
 			if (this.abort.signal.aborted || isAbortError(error)) return;
@@ -121,38 +129,22 @@ export class CodeDiffBlock extends MarkdownRenderChild {
 			highlight: settings.defaultHighlight,
 			/* Empty fontFamily resolves the value at runtime to match the current Obsidian's monospace font */
 			fontFamily: settings.defaultFontFamily || 'var(--font-monospace)',
+			maxHeight: defaultMaxHeight(settings.defaultMaxHeight),
 		});
 
-		const hasBody = body.trim() !== '';
-		const hasGitConfig =
-			config.repo !== undefined ||
-			config.from !== undefined ||
-			config.to !== undefined ||
-			config.commit !== undefined;
+		const decision = decideSource(config, body);
 
-		if (hasBody && hasGitConfig) {
-			warnings.push('The block has both a diff body and Git options; the embedded diff was used.');
-		}
-
-		if (hasBody) {
+		if (decision.kind === 'embedded') {
+			if (decision.warning) warnings.push(decision.warning);
 			return { config, warnings, source: new EmbeddedDiffSource(body) };
-		}
-
-		if (!hasGitConfig) {
-			throw new ConfigError(
-				'The block is empty. Paste a diff into it, or set `repo` together with `from`/`to` or `commit`.',
-			);
-		}
-
-		if (config.repo === undefined) {
-			throw new ConfigError('`repo` is required when generating a diff from Git.');
 		}
 
 		return {
 			config,
 			warnings,
 			source: new GitDiffSource(
-				config.repo,
+				// decideSource only returns 'git' once `config.repo` is confirmed set.
+				config.repo!,
 				{
 					from: config.from,
 					to: config.to,
@@ -182,6 +174,33 @@ export class CodeDiffBlock extends MarkdownRenderChild {
 
 		return vaultPath;
 	}
+}
+
+/**
+ * The settings tab validates before saving, so a bad value here can
+ * only come from a hand-edited `.obsidian/plugins/code-diff/data.json`.
+ */
+function defaultMaxHeight(stored: string): string | undefined {
+	try {
+		return normalizeMaxHeight(stored);
+	} catch {
+		return DEFAULT_CONFIG.maxHeight;
+	}
+}
+
+/**
+ * The bundle ships a subset of Shiki's grammars (see `render/languages.ts`), so
+ * a file in an unlisted language renders uncoloured. Saying which language is
+ * missing turns a silently grey diff into something actionable.
+ */
+function highlightWarnings(files: FileDiffMetadata[]): string[] {
+	const missing = unbundledLanguages(files);
+	if (missing.length === 0) return [];
+
+	return [
+		`No bundled syntax highlighting for ${missing.map((lang) => `\`${lang}\``).join(', ')}; ` +
+			'those files render as plain text.',
+	];
 }
 
 function isAbortError(error: unknown): boolean {
