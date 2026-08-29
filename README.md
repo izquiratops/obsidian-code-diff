@@ -2,12 +2,15 @@
 
 ![](docs/example.png)
 
-Render code diffs in the middle of your notes, using
-[`@pierre/diffs`](https://diffs.com) as the rendering engine.
+Show code diffs inside your notes. This plugin uses
+[`@pierre/diffs`](https://diffs.com) as the (beautiful) rendering engine.
 
-> Status: early. Embedded diffs and local Git repositories work. Remote
-> repositories and caching are not implemented yet — see
-> [HANDOVER.md](./HANDOVER.md).
+> Status: early! Embedded diffs and local Git repositories work. Remote
+> repositories and caching are not implemented yet.
+
+Repository based diffs (using the repo option) are built with `git`, so
+they only run on the Desktop app. On mobile and in browsers, embed the diff
+directly in the code block instead.
 
 ## Install for development
 
@@ -17,16 +20,15 @@ npm run build
 node scripts/install.mjs "/path/to/Vault"
 ```
 
-Then reload Obsidian and enable **Code Diff** under *Settings → Community plugins*.
+Then reload Obsidian. Enable **Code Diff** under *Settings → Community plugins*.
 
-For iterating, `npm run dev` rebuilds on change; re-run the install script (or
-symlink the folder) to pick the build up.
-
-Desktop only: generating diffs shells out to `git`.
+During development, run `npm run dev`. It rebuilds the plugin on change.
+Then run the install script again, or just symlink the folder
 
 ## Syntax
 
-Diffs live in a fenced block tagged `code-diff`, with optional YAML frontmatter.
+A diff lives in a fenced code block. The block is tagged `code-diff`.
+You can add YAML frontmatter to the block.
 
 ### A diff pasted into the note
 
@@ -46,8 +48,9 @@ index 1234567..89abcde 100644
 ```
 ````
 
-Standard `git diff` output is the input format — no rewriting into a custom
-before/after syntax. Plain unified diffs (`---`/`+++`/`@@`) work too.
+The input format is standard `git diff` output. You do not need to rewrite
+it into a custom before/after syntax. Plain unified diffs
+(`---`/`+++`/`@@`) also work.
 
 ### A diff generated from a local repository
 
@@ -72,21 +75,21 @@ commit: abc123
 
 | Option | Values | Default | Meaning |
 |---|---|---|---|
-| `repo` | path | — | Local repository. Relative paths resolve from the vault folder (configurable). `~` is expanded. |
-| `from` | revision | `HEAD` | Left-hand side. Branch, tag, sha, or any Git revision. |
-| `to` | revision | `HEAD` | Right-hand side. |
-| `commit` | revision | — | Shorthand for the changes that commit introduced. Cannot be combined with `from`/`to`. |
+| `repo` | path | — | The path of a local repository. Relative paths resolve from the vault folder (configurable). The plugin expands `~`. |
+| `from` | revision | `HEAD` | The left side of the diff. Use a branch, tag, sha, or any Git revision. |
+| `to` | revision | `HEAD` | The right side of the diff. |
+| `commit` | revision | — | Shows the changes that one commit introduced. Do not combine it with `from` or `to`. |
 | `paths` | string or list | — | Restrict the diff to these paths. |
-| `context` | integer | Git default | Lines of context to ask Git for. |
-| `view` | `unified`, `split` | `unified` | Layout. `inline`/`side-by-side` are accepted aliases. |
-| `theme` | `auto`, `light`, `dark` | `auto` | `auto` follows Obsidian's appearance and reacts to changes. |
+| `context` | integer | Git default | The lines of context that you ask Git for. |
+| `view` | `unified`, `split` | `unified` | Layout of the diff. `inline` and `side-by-side` are accepted aliases. |
+| `theme` | `auto`, `light`, `dark` | `auto` | With `auto`, the theme follows Obsidian and changes with it. |
 | `lineNumbers` | boolean | `true` | Show line numbers. |
 | `wrap` | boolean | `false` | Wrap long lines instead of scrolling. |
-| `fileHeader` | boolean | `true` | Show the per-file header. |
-| `highlight` | `word`, `char`, `none` | `word` | Intra-line change highlighting. |
+| `fileHeader` | boolean | `true` | Show the header of each file. |
+| `highlight` | `word`, `char`, `none` | `word` | Highlight the changed part inside a line. |
 | `lightTheme` / `darkTheme` | bundled theme name | `pierre-light` / `pierre-dark` | Override the syntax theme. See [Syntax highlighting](#syntax-highlighting). |
-| `fontFamily` | CSS `font-family` | Obsidian's monospace font | Font for the diff content. |
-| `maxHeight` | CSS length or `none` | `60vh` | Cap the height of the diff's scroll region. Use `none` to let it grow with the note. |
+| `fontFamily` | CSS `font-family` | Obsidian's monospace font | The font for the diff content. |
+| `maxHeight` | CSS length or `none` | `60vh` | The maximum height of the scroll region for the diff. Use `none` to let it grow with the note. |
 
-Defaults for the presentation options can be set in the plugin settings; a block
-always wins over the setting.
+You can set defaults for the presentation options in the plugin settings.
+A block always wins over the setting.
