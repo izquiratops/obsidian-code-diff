@@ -74,7 +74,7 @@ commit: abc123
 | `wrap` | boolean | `false` | Wrap long lines instead of scrolling. |
 | `fileHeader` | boolean | `true` | Show the header of each file. |
 | `highlight` | `word`, `char`, `none` | `word` | Highlight the changed part inside a line. |
-| `lightTheme` / `darkTheme` | bundled theme name | `pierre-light` / `pierre-dark` | Override the syntax theme. See [Syntax highlighting](#syntax-highlighting). |
+| `lightTheme` / `darkTheme` | bundled theme name | `pierre-light` / `pierre-dark` | Override the syntax theme. |
 | `fontFamily` | CSS `font-family` | Obsidian's monospace font | The font for the diff content. |
 | `maxHeight` | CSS length or `none` | `60vh` | The maximum height of the scroll region for the diff. Use `none` to let it grow with the note. |
 
