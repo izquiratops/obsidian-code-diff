@@ -90,31 +90,3 @@ commit: abc123
 
 Defaults for the presentation options can be set in the plugin settings; a block
 always wins over the setting.
-
-## Syntax highlighting
-
-Shiki ships 260 TextMate grammars and 75 themes, and an Obsidian plugin is a
-single bundled `main.js` — so shipping all of them would mean an 11 MB plugin,
-loaded on every app start. This one bundles a subset instead: 74 languages and
-Pierre's 10 themes, which is 3.8 MB.
-
-- A file whose language is not bundled still renders. It comes out uncoloured,
-  and the block adds a warning naming the language.
-- The available names are `pierre-light` / `pierre-dark` plus their `-soft`, `-vibrant`,
-  `-protanopia-deuteranopia` and `-tritanopia` variants.
-
-## States
-
-The block never fails silently. It shows `Loading diff…` while working, then one
-of: the diff, `No changes`, or an error headline such as `Diff not found`,
-`Repository not found`, `Invalid Git repository`, `Git is not available`, or
-`Invalid diff`. Command output and other diagnostics are tucked into a
-collapsed **Details** section rather than shown as the primary UI.
-
-## Development
-
-```bash
-npm run typecheck
-npm test
-npm run build
-```
