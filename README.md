@@ -1,6 +1,6 @@
 # Code Diff — Obsidian plugin
 
-![](docs/example.png)
+![](docs/fibonacci.png)
 
 Show code diffs inside your notes. This plugin uses
 [`@pierre/diffs`](https://diffs.com) as the (beautiful) rendering engine.
@@ -8,16 +8,44 @@ Show code diffs inside your notes. This plugin uses
 > ⚠️ Status: early!
 > Embedded diffs and local Git repositories work. Remote repositories and caching are not implemented yet.
 
-Repository based diffs (using the repo option) are built with `git`, so
-they only run on the Desktop app. On mobile and in browsers, embed the diff
-directly in the code block instead.
-
 ## Syntax
 
 A diff lives in a fenced code block. The block is tagged `code-diff`.
-You can add YAML frontmatter to the block.
 
-### A diff pasted into the note
+<table>
+<tr>
+<td>
+
+````markdown
+```code-diff
+diff --git a/foo.ts b/foo.ts
+index 1234567..89abcde 100644
+--- a/foo.ts
++++ b/foo.ts
+@@ -1 +1 @@
+-const foo = 1;
++const foo = 2;
+```
+````
+
+</td>
+<td>
+<img src="docs/unified.png">
+</td>
+</tr>
+</table>
+
+
+The input format is standard `git diff` output. You do not need to rewrite
+it into a custom before/after syntax. Plain unified diffs
+(`---`/`+++`/`@@`) also work.
+
+You can add a YAML frontmatter to the block!
+This is how you can edit some configurations from the renderer, this example draws the diff in split view.
+
+<table>
+<tr>
+<td>
 
 ````markdown
 ```code-diff
@@ -35,11 +63,19 @@ index 1234567..89abcde 100644
 ```
 ````
 
-The input format is standard `git diff` output. You do not need to rewrite
-it into a custom before/after syntax. Plain unified diffs
-(`---`/`+++`/`@@`) also work.
+</td>
+<td>
+<img src="docs/split.png">
+</td>
+</tr>
+</table>
 
 ### A diff generated from a local repository
+
+Referencing a directory is another way to build a code-diff block. This kind of block use `git`,
+so they only run on the Desktop app. They won't work on mobile and in browsers!
+
+This one shows the changes between two different branches:
 
 ````markdown
 ```code-diff
@@ -49,16 +85,19 @@ to: feature/foo
 ```
 ````
 
-### The changes introduced by one commit
+You can even point to a single commit or filter which files to include.
 
 ````markdown
 ```code-diff
 repo: ../my-project
 commit: abc123
+paths: [package.json]
 ```
 ````
 
 ## Options
+
+Here's a list of every setting allowed in the frontmatter.
 
 | Option | Values | Default | Meaning |
 |---|---|---|---|

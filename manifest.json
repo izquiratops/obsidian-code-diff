@@ -1,10 +1,9 @@
 {
   "id": "code-diff",
+  "author": "Jordi Izquierdo",
   "name": "Code Diff",
+  "description": "Render code diffs embedded in the middle of your notes, from pasted patches or from a Git repository.",
   "version": "0.2.0",
   "minAppVersion": "1.5.0",
-  "description": "Render code diffs embedded in the middle of your notes, from pasted patches or from a Git repository.",
-  "author": "Jordi Izquierdo",
   "isDesktopOnly": false,
-  "main": "dist/main.js"
 }
