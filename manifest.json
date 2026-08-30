@@ -5,5 +5,5 @@
   "description": "Render code diffs embedded in the middle of your notes, from pasted patches or from a Git repository.",
   "version": "0.2.0",
   "minAppVersion": "1.5.0",
-  "isDesktopOnly": false,
+  "isDesktopOnly": false
 }
