@@ -25,13 +25,13 @@ describe('repo location', () => {
 		assert.ok(!isRemoteRepo('C:/Users/me/project'));
 	});
 
-	test('resolves relative paths against the given base', () => {
-		const location = resolveRepoLocation('../project', '/vault/notes');
+	test('resolves relative paths against the given base', async () => {
+		const location = await resolveRepoLocation('../project', '/vault/notes');
 		assert.deepEqual(location, { kind: 'local', path: '/vault/project', input: '../project' });
 	});
 
-	test('leaves absolute paths untouched', () => {
-		const location = resolveRepoLocation('/srv/repo', '/vault');
+	test('leaves absolute paths untouched', async () => {
+		const location = await resolveRepoLocation('/srv/repo', '/vault');
 		assert.equal(location.kind === 'local' && location.path, '/srv/repo');
 	});
 });

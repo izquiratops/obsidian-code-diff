@@ -1,5 +1,3 @@
-import { execFile } from 'node:child_process';
-import { existsSync } from 'node:fs';
 import { DiffError } from '../errors.ts';
 
 export interface GitRunOptions {
@@ -21,8 +19,13 @@ const DEFAULT_MAX_BUFFER = 64 * 1024 * 1024;
 /**
  * Runs a Git command with an argument array, never a shell string, so that
  * values coming from a note can never be interpreted as shell syntax.
+ *
+ * `node:child_process` is imported lazily so that merely loading the plugin
+ * never touches a Node API: on mobile, where Node is absent, this module can
+ * load safely and the desktop-only gate in `block.ts` keeps it from running.
  */
-export function runGit(args: string[], options: GitRunOptions = {}): Promise<GitResult> {
+export async function runGit(args: string[], options: GitRunOptions = {}): Promise<GitResult> {
+	const { execFile } = await import('node:child_process');
 	const { cwd, signal, timeoutMs = DEFAULT_TIMEOUT_MS, maxBufferBytes = DEFAULT_MAX_BUFFER } = options;
 
 	return new Promise((resolve, reject) => {
@@ -57,18 +60,20 @@ export function runGit(args: string[], options: GitRunOptions = {}): Promise<Git
 				if (code === 'ENOENT') {
 					// `spawn ENOENT` is raised both when the `git` binary is missing
 					// and when `cwd` does not exist, and the two are indistinguishable
-					// from the error alone. Check the directory so a missing repository
+					// from the error alone. Probe `git --version` so a missing repository
 					// is not reported as a missing Git installation.
-					if (cwd !== undefined && !existsSync(cwd)) {
-						reject(new DiffError('Repository not found', `\`${cwd}\` does not exist.`));
-						return;
-					}
-					reject(
-						new DiffError(
-							'Git is not available',
-							'The `git` executable could not be found. Make sure Git is installed and available on the PATH that Obsidian was launched with.',
-						),
-					);
+					execFile('git', ['--version'], { timeout: 5_000, windowsHide: true }, (probeError) => {
+						if (probeError == null && cwd !== undefined) {
+							reject(new DiffError('Repository not found', `\`${cwd}\` does not exist.`));
+							return;
+						}
+						reject(
+							new DiffError(
+								'Git is not available',
+								'The `git` executable could not be found. Make sure Git is installed and available on the PATH that Obsidian was launched with.',
+							),
+						);
+					});
 					return;
 				}
 				if (code === 'ABORT_ERR' || signal?.aborted === true) {

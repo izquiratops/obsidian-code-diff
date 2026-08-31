@@ -1,6 +1,3 @@
-import { homedir } from 'node:os';
-import { isAbsolute, resolve } from 'node:path';
-
 export type RepoLocation =
 	| { kind: 'local'; path: string; input: string }
 	| { kind: 'remote'; url: string; input: string };
@@ -32,12 +29,15 @@ export function isRemoteRepo(input: string): boolean {
  * Relative paths are resolved against `base`, which the caller chooses from the
  * plugin settings (vault root or the folder holding the note).
  */
-export function resolveRepoLocation(input: string, base: string): RepoLocation {
+export async function resolveRepoLocation(input: string, base: string): Promise<RepoLocation> {
 	const trimmed = input.trim();
 
 	if (isRemoteRepo(trimmed)) {
 		return { kind: 'remote', url: trimmed, input: trimmed };
 	}
+
+	// Import Node.js deps lazily so this module can load on mobile
+	const [{ homedir }, { isAbsolute, resolve }] = await Promise.all([import('node:os'), import('node:path')]);
 
 	let path = trimmed;
 	if (path === '~') {

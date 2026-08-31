@@ -1,5 +1,5 @@
 import type { FileDiffMetadata } from '@pierre/diffs';
-import { MarkdownRenderChild, type App, type MarkdownPostProcessorContext } from 'obsidian';
+import { MarkdownRenderChild, Platform, type App, type MarkdownPostProcessorContext } from 'obsidian';
 
 import { parseBlock } from './config/block.ts';
 import { ConfigError, DEFAULT_CONFIG, normalizeMaxHeight, type DiffConfig } from './config/schema.ts';
@@ -12,7 +12,7 @@ import type { CodeDiffSettings } from './settings.ts';
 import { EmbeddedDiffSource } from './sources/embedded.ts';
 import { GitDiffSource } from './sources/git.ts';
 import type { DiffSource } from './sources/types.ts';
-import { appendDetails, appendWarnings, renderError, renderLoading, renderNotice } from './ui/states.ts';
+import { appendWarnings, renderError, renderLoading, renderNotice } from './ui/states.ts';
 
 export interface BlockContext {
 	app: App;
@@ -139,12 +139,18 @@ export class CodeDiffBlock extends MarkdownRenderChild {
 			return { config, warnings, source: new EmbeddedDiffSource(body) };
 		}
 
+		if (!Platform.isDesktopApp) {
+			throw new DiffError(
+				'Git diffs need the desktop app',
+				'This block generates its diff by running Git, which is only available in the Obsidian desktop app. Blocks with a pasted diff work everywhere.',
+			);
+		}
+
 		return {
 			config,
 			warnings,
 			source: new GitDiffSource(
-				// decideSource only returns 'git' once `config.repo` is confirmed set.
-				config.repo!,
+				config.repo!, // `config.repo` is a confirmed set when `decision.kind` is 'git'
 				{
 					from: config.from,
 					to: config.to,
