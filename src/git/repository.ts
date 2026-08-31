@@ -125,7 +125,7 @@ export class LocalRepository {
 		const to = await this.resolveRevision(toRef, runOptions);
 
 		const patch = await runGitOrThrow(
-			['diff', '--no-color', '--no-ext-diff', '--end-of-options', ...contextArgs, from, to, ...pathArgs],
+			['diff', '--no-color', '--no-ext-diff', ...contextArgs, '--end-of-options', from, to, ...pathArgs],
 			runOptions,
 			{ message: 'Could not generate diff' },
 		);
