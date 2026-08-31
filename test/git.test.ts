@@ -143,6 +143,25 @@ describe('local repository', () => {
 		assert.match(wide.patch, /@@ -1 \+1 @@/);
 	});
 
+	test('resolveRevision treats an option-like string as an ordinary unresolved revision', async () => {
+		await assert.rejects(() => repo.resolveRevision('--upload-pack=touch /tmp/pwned', {}), (error: unknown) => {
+			assert.ok(error instanceof DiffError);
+			assert.equal(error.message, 'Diff not found');
+			return true;
+		});
+	});
+
+	test('diff rejects option-like from/to values instead of passing them to Git as flags', async () => {
+		await assert.rejects(
+			() => repo.diff({ from: '--upload-pack=touch /tmp/pwned', to: 'main' }, {}),
+			(error: unknown) => {
+				assert.ok(error instanceof DiffError);
+				assert.equal(error.message, 'Diff not found');
+				return true;
+			},
+		);
+	});
+
 	test('pathspecs restrict the diff', async () => {
 		const result = await repo.diff({ from: firstSha, to: 'main', paths: ['does-not-exist.ts'] }, {});
 		assert.equal(result.patch.trim(), '');

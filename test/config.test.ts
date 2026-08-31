@@ -89,6 +89,34 @@ test('commit cannot be combined with from/to', () => {
 	assert.throws(() => normalizeConfig({ commit: 'abc', from: 'main' }), ConfigError);
 });
 
+test('from/to/commit reject values starting with a dash', () => {
+	assert.throws(() => normalizeConfig({ from: '-1' }), (error: unknown) => {
+		assert.ok(error instanceof ConfigError);
+		assert.match(error.message, /`from` cannot start with `-`/);
+		return true;
+	});
+	assert.throws(() => normalizeConfig({ to: '--upload-pack=touch /tmp/pwned' }), (error: unknown) => {
+		assert.ok(error instanceof ConfigError);
+		assert.match(error.message, /`to` cannot start with `-`/);
+		return true;
+	});
+	assert.throws(() => normalizeConfig({ commit: '--output=/tmp/pwned' }), (error: unknown) => {
+		assert.ok(error instanceof ConfigError);
+		assert.match(error.message, /`commit` cannot start with `-`/);
+		return true;
+	});
+});
+
+test('from/to/commit still accept values with a dash that is not leading', () => {
+	assert.equal(normalizeConfig({ from: 'release-1.0' }).config.from, 'release-1.0');
+	assert.equal(normalizeConfig({ to: 'feature/foo-bar' }).config.to, 'feature/foo-bar');
+	assert.equal(normalizeConfig({ commit: 'a1b2c3d-e' }).config.commit, 'a1b2c3d-e');
+});
+
+test('a leading dash is caught even after whitespace is trimmed', () => {
+	assert.throws(() => normalizeConfig({ from: '  --all' }), ConfigError);
+});
+
 test('a YAML list at the top level is rejected', () => {
 	assert.throws(() => normalizeConfig(['view']), ConfigError);
 });
