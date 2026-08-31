@@ -59,7 +59,7 @@ export class LocalRepository {
 
 	/** Resolves a revision to a full object id, or throws `Diff not found`. */
 	async resolveRevision(revision: string, options: GitRunOptions): Promise<string> {
-		const result = await runGit(['rev-parse', '--verify', '--quiet', `${revision}^{commit}`], {
+		const result = await runGit(['rev-parse', '--verify', '--quiet', '--end-of-options', `${revision}^{commit}`], {
 			...options,
 			cwd: this.path,
 		});
@@ -77,7 +77,7 @@ export class LocalRepository {
 
 	/** Returns true when the commit has at least one parent. */
 	async hasParent(sha: string, options: GitRunOptions): Promise<boolean> {
-		const result = await runGit(['rev-parse', '--verify', '--quiet', `${sha}^1^{commit}`], {
+		const result = await runGit(['rev-parse', '--verify', '--quiet', '--end-of-options', `${sha}^1^{commit}`], {
 			...options,
 			cwd: this.path,
 		});
@@ -125,7 +125,7 @@ export class LocalRepository {
 		const to = await this.resolveRevision(toRef, runOptions);
 
 		const patch = await runGitOrThrow(
-			['diff', '--no-color', '--no-ext-diff', ...contextArgs, from, to, ...pathArgs],
+			['diff', '--no-color', '--no-ext-diff', ...contextArgs, '--end-of-options', from, to, ...pathArgs],
 			runOptions,
 			{ message: 'Could not generate diff' },
 		);

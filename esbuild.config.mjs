@@ -1,6 +1,6 @@
 import esbuild from 'esbuild';
 import process from 'node:process';
-import builtins from 'builtin-modules';
+import { builtinModules } from 'node:module';
 
 import { shikiSubset } from './scripts/shiki-subset.mjs';
 
@@ -25,8 +25,8 @@ const ctx = await esbuild.context({
     '@lezer/common',
     '@lezer/highlight',
     '@lezer/lr',
-    ...builtins,
-    ...builtins.map((m) => `node:${m}`),
+    ...builtinModules,
+    ...builtinModules.map((m) => `node:${m}`),
   ],
   plugins: [shikiSubset()],
   format: 'cjs',

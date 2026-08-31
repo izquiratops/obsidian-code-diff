@@ -25,13 +25,13 @@ describe('repo location', () => {
 		assert.ok(!isRemoteRepo('C:/Users/me/project'));
 	});
 
-	test('resolves relative paths against the given base', () => {
-		const location = resolveRepoLocation('../project', '/vault/notes');
+	test('resolves relative paths against the given base', async () => {
+		const location = await resolveRepoLocation('../project', '/vault/notes');
 		assert.deepEqual(location, { kind: 'local', path: '/vault/project', input: '../project' });
 	});
 
-	test('leaves absolute paths untouched', () => {
-		const location = resolveRepoLocation('/srv/repo', '/vault');
+	test('leaves absolute paths untouched', async () => {
+		const location = await resolveRepoLocation('/srv/repo', '/vault');
 		assert.equal(location.kind === 'local' && location.path, '/srv/repo');
 	});
 });
@@ -141,6 +141,25 @@ describe('local repository', () => {
 	test('the context option reaches Git', async () => {
 		const wide = await repo.diff({ from: firstSha, to: 'main', context: 0 }, {});
 		assert.match(wide.patch, /@@ -1 \+1 @@/);
+	});
+
+	test('resolveRevision treats an option-like string as an ordinary unresolved revision', async () => {
+		await assert.rejects(() => repo.resolveRevision('--upload-pack=touch /tmp/pwned', {}), (error: unknown) => {
+			assert.ok(error instanceof DiffError);
+			assert.equal(error.message, 'Diff not found');
+			return true;
+		});
+	});
+
+	test('diff rejects option-like from/to values instead of passing them to Git as flags', async () => {
+		await assert.rejects(
+			() => repo.diff({ from: '--upload-pack=touch /tmp/pwned', to: 'main' }, {}),
+			(error: unknown) => {
+				assert.ok(error instanceof DiffError);
+				assert.equal(error.message, 'Diff not found');
+				return true;
+			},
+		);
 	});
 
 	test('pathspecs restrict the diff', async () => {

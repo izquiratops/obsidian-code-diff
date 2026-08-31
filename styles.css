@@ -25,11 +25,6 @@
   outline: none;
 }
 
-/* Override nasty margin from an inline rule I have no idea how target */
-.code-diff-scroll > div {
-  margin-top: 0 !important;
-}
-
 /* ~~~ Loading / notice / error states ~~~ */
 
 .code-diff-state {
@@ -71,7 +66,7 @@
   color: var(--text-muted);
 }
 
-.code-diff-details > summary {
+.code-diff-details>summary {
   cursor: pointer;
 }
 

@@ -21,7 +21,7 @@ export class GitDiffSource implements DiffSource {
 	}
 
 	async resolve(signal: AbortSignal): Promise<ResolvedDiff> {
-		const location = resolveRepoLocation(this.repo, this.context.base);
+		const location = await resolveRepoLocation(this.repo, this.context.base);
 
 		if (location.kind === 'remote') {
 			throw new DiffError(

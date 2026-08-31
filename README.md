@@ -4,6 +4,7 @@
 
 Show code diffs inside your notes. This plugin uses
 [`@pierre/diffs`](https://diffs.com) as the (beautiful) rendering engine.
+Please read the section about [Security & Privacy](#security-%26-privacy) before start using this extension.
 
 > ⚠️ Status: early!
 > Embedded diffs and local Git repositories work. Remote repositories and caching are not implemented yet.
@@ -36,9 +37,7 @@ index 1234567..89abcde 100644
 </table>
 
 
-The input format is standard `git diff` output. You do not need to rewrite
-it into a custom before/after syntax. Plain unified diffs
-(`---`/`+++`/`@@`) also work.
+The input format is standard `git diff` output.
 
 You can add a YAML frontmatter to the block!
 This is how you can edit some configurations from the renderer, this example draws the diff in split view.
@@ -119,6 +118,30 @@ Here's a list of every setting allowed in the frontmatter.
 
 You can set defaults for the presentation options in the plugin settings.
 A block always wins over the setting.
+
+## Security & privacy
+
+This plugin is flagged as **shell execution** because generating a diff
+from a repository means running `git`.
+
+- **What runs.** Only the `git` executable already installed on your machine,
+  and only these read-only subcommands:
+  - `git rev-parse` to resolve revisions.
+  - `git diff` / `git show` to produce the patch.
+  The plugin **never** writes to a repository, never stages, commits, pushes or fetches.
+- **How it runs.** Git is spawned directly with an argument list:
+  - `execFile`, so nothing in a note can be interpreted as shell syntax.
+  - External diff drivers and pagers configured in a repository are explicitly disabled using `--no-ext-diff` and `--no-pager`.
+  - Git will never prompt for credentials.
+  - Every invocation has a 30-second timeout and a bounded output size.
+- **When it runs.** Only when a `code-diff` block sets `repo:`. Blocks with a
+  pasted diff don't need to touch `git`, the job is already done!
+- **What it can read.** A `repo:` block can point at any local repository your
+  user account can read, including ones **outside the vault**. Please, treat `repo:` blocks
+  in notes you did not write yourself with the same care as any other content
+  that references files on your machine.
+- **Network & telemetry.** Nada. The plugin makes no network requests and
+  collects no data. Remote repository URLs are currently recognised but rejected.
 
 ## Install for development
 

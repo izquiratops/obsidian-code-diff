@@ -28,7 +28,7 @@ export function parseBlock(source: string, defaults: Partial<DiffConfig> = {}): 
 			// Definitely a diff body, not config. Skip YAML parse.
 		} else {
 			try {
-				const parsedBody = parseYaml(trimStartBody);
+				const parsedBody: unknown = parseYaml(trimStartBody);
 				if (looksLikeConfig(parsedBody)) {
 					const { config, warnings } = normalizeConfig(parsedBody, defaults);
 					return { config, warnings, body: '' };

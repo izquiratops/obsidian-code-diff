@@ -1,6 +1,12 @@
 import { setIcon } from 'obsidian';
 import type { DiffError } from '../errors.ts';
 
+function appendDetails(host: HTMLElement, detail: string, summary = 'Details'): void {
+	const details = host.createEl('details', { cls: 'code-diff-details' });
+	details.createEl('summary', { text: summary });
+	details.createEl('pre', { cls: 'code-diff-details-body' }).createEl('code', { text: detail });
+}
+
 export function renderLoading(host: HTMLElement, label = 'Loading diff…'): void {
 	host.empty();
 	const el = host.createDiv({ cls: 'code-diff-state code-diff-state-loading' });
@@ -22,12 +28,6 @@ export function renderError(host: HTMLElement, error: DiffError): void {
 	setIcon(el.createSpan({ cls: 'code-diff-state-icon' }), 'alert-triangle');
 	el.createSpan({ cls: 'code-diff-state-text', text: error.message });
 	if (error.detail !== undefined) appendDetails(host, error.detail);
-}
-
-export function appendDetails(host: HTMLElement, detail: string, summary = 'Details'): void {
-	const details = host.createEl('details', { cls: 'code-diff-details' });
-	details.createEl('summary', { text: summary });
-	details.createEl('pre', { cls: 'code-diff-details-body' }).createEl('code', { text: detail });
 }
 
 export function appendWarnings(host: HTMLElement, warnings: string[]): void {
