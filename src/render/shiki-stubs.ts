@@ -22,12 +22,11 @@ export interface PlainTextGrammar {
 }
 
 /**
- * Stands in for a grammar that is not bundled. The diff still renders — every
- * line simply comes out as plain text — and the block adds a warning naming the
- * language, so the fix (add it to `BUNDLED_LANGUAGES`) is discoverable.
+ * Stands in for a grammar that is not bundled. The diff still renders! But every
+ * line simply comes out as plain text. `highlightWarnings` coming from `block.ts`
+ * surfaces an in-UI warning naming the language.
  */
 export function plainTextGrammar(name: string): PlainTextGrammar[] {
-	console.info(`[code-diff] no bundled grammar for ${name}; rendering those files as plain text.`);
 	return [{ name, scopeName: `source.${name}`, patterns: [], repository: {} }];
 }
 
