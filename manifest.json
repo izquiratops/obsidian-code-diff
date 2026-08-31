@@ -3,7 +3,7 @@
   "author": "Jordi Izquierdo",
   "name": "Code Diff",
   "description": "Render code diffs embedded in the middle of your notes, from pasted patches or from a Git repository.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "minAppVersion": "1.5.0",
   "isDesktopOnly": false
 }
