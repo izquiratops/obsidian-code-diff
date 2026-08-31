@@ -163,14 +163,17 @@ export function normalizeConfig(raw: unknown, defaults: Partial<DiffConfig> = {}
 
 	if (entries.from !== undefined) {
 		config.from = asString(entries.from, 'from').trim();
+		if (config.from.startsWith('-')) throw new ConfigError(`\`from\` cannot start with \`-\`. Use a branch, tag, or commit id.`);
 	}
 
 	if (entries.to !== undefined) {
 		config.to = asString(entries.to, 'to').trim();
+		if (config.to.startsWith('-')) throw new ConfigError(`\`to\` cannot start with \`-\`. Use a branch, tag, or commit id.`);
 	}
 
 	if (entries.commit !== undefined) {
 		config.commit = asString(entries.commit, 'commit').trim();
+		if (config.commit.startsWith('-')) throw new ConfigError(`\`commit\` cannot start with \`-\`. Use a branch, tag, or commit id.`);
 	}
 
 	if (entries.paths !== undefined) {
