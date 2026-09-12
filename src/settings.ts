@@ -88,7 +88,10 @@ export class CodeDiffSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl).setName('Rendering').setHeading();
 
-		new Setting(containerEl).setName('View').addDropdown((dropdown) =>
+		new Setting(containerEl)
+			.setName('View')
+			.setDesc('Choose whether changed lines are shown together or side by side by default.')
+			.addDropdown((dropdown) =>
 			dropdown
 				.addOption('unified', 'Unified')
 				.addOption('split', 'Split')
@@ -99,7 +102,10 @@ export class CodeDiffSettingTab extends PluginSettingTab {
 				}),
 		);
 
-		new Setting(containerEl).setName('Theme').addDropdown((dropdown) =>
+		new Setting(containerEl)
+			.setName('Theme')
+			.setDesc('Choose the color theme for diffs, or follow Obsidian’s current theme.')
+			.addDropdown((dropdown) =>
 			dropdown
 				.addOption('auto', 'Follow Obsidian')
 				.addOption('light', 'Light')
@@ -111,7 +117,10 @@ export class CodeDiffSettingTab extends PluginSettingTab {
 				}),
 		);
 
-		new Setting(containerEl).setName('Line numbers').addToggle((toggle) =>
+		new Setting(containerEl)
+			.setName('Line numbers')
+			.setDesc('Show original and updated line numbers alongside the diff.')
+			.addToggle((toggle) =>
 			toggle.setValue(this.plugin.settings.defaultLineNumbers).onChange(async (value) => {
 				this.plugin.settings.defaultLineNumbers = value;
 				await this.plugin.saveSettings();
@@ -120,6 +129,7 @@ export class CodeDiffSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Wrap long lines')
+			.setDesc('Wrap lines that exceed the width of the diff instead of scrolling horizontally.')
 			.addToggle((toggle) =>
 				toggle.setValue(this.plugin.settings.defaultWrap).onChange(async (value) => {
 					this.plugin.settings.defaultWrap = value;
@@ -129,6 +139,7 @@ export class CodeDiffSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Intra-line highlighting')
+			.setDesc('Highlight the words or characters that changed within a modified line.')
 			.addDropdown((dropdown) =>
 				dropdown
 					.addOption('word', 'Word')
