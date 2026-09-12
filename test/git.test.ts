@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, describe, test } from 'node:test';
 
 import { isRemoteRepo, resolveRepoLocation } from '../src/git/location.ts';
+import { assertRepositoryAccess, isRepositoryInsideVault } from '../src/git/access.ts';
 import { EMPTY_TREE, LocalRepository } from '../src/git/repository.ts';
-import { runGit } from '../src/git/runner.ts';
+import { runGit, runReadOnlyGit } from '../src/git/runner.ts';
 import { DiffError } from '../src/errors.ts';
 
 describe('repo location', () => {
@@ -34,6 +35,69 @@ describe('repo location', () => {
 		const location = await resolveRepoLocation('/srv/repo', '/vault');
 		assert.equal(location.kind === 'local' && location.path, '/srv/repo');
 	});
+});
+
+describe('repository access', () => {
+	let root: string;
+
+	before(async () => {
+		root = await mkdtemp(join(tmpdir(), 'code-diff-access-'));
+		await mkdir(join(root, 'vault', 'repo'), { recursive: true });
+		await mkdir(join(root, 'outside-repo'));
+		await symlink(join(root, 'outside-repo'), join(root, 'vault', 'linked-repo'));
+	});
+
+	after(async () => {
+		await rm(root, { recursive: true, force: true });
+	});
+
+	test('allows repositories inside the vault without an opt-in', async () => {
+		assert.equal(await isRepositoryInsideVault(join(root, 'vault', 'repo'), join(root, 'vault')), true);
+		await assertRepositoryAccess(join(root, 'vault', 'repo'), join(root, 'vault'), false);
+	});
+
+	test('does not mistake a sibling with the same prefix for a vault child', async () => {
+		assert.equal(await isRepositoryInsideVault(join(root, 'vault-copy'), join(root, 'vault')), false);
+	});
+
+	test('blocks repositories outside the vault by default', async () => {
+		await assert.rejects(
+			() => assertRepositoryAccess(join(root, 'outside-repo'), join(root, 'vault'), false),
+			(error: unknown) => {
+				assert.ok(error instanceof DiffError);
+				assert.equal(error.message, 'Repository is outside the vault');
+				assert.match(error.detail ?? '', /Allow read-only Git outside vault/);
+				return true;
+			},
+		);
+	});
+
+	test('blocks a symlink inside the vault that resolves outside it', async () => {
+		assert.equal(await isRepositoryInsideVault(join(root, 'vault', 'linked-repo'), join(root, 'vault')), false);
+		await assert.rejects(
+			() => assertRepositoryAccess(join(root, 'vault', 'linked-repo'), join(root, 'vault'), false),
+			DiffError,
+		);
+	});
+
+	test('allows an outside repository after the user explicitly opts in', async () => {
+		await assertRepositoryAccess(join(root, 'outside-repo'), join(root, 'vault'), true);
+	});
+
+	test('requires the opt-in when no local vault path is available', async () => {
+		await assert.rejects(() => assertRepositoryAccess(join(root, 'outside-repo'), null, false), DiffError);
+	});
+});
+
+test('repository-backed blocks reject Git commands outside the read-only allowlist', async () => {
+	await assert.rejects(
+		() => runReadOnlyGit(['add', '.'] as unknown as Parameters<typeof runReadOnlyGit>[0]),
+		(error: unknown) => {
+			assert.ok(error instanceof DiffError);
+			assert.equal(error.message, 'Blocked Git command');
+			return true;
+		},
+	);
 });
 
 describe('local repository', () => {

@@ -7,6 +7,7 @@ export type PathBase = 'vault' | 'note';
 
 export interface CodeDiffSettings {
 	pathBase: PathBase;
+	allowReadOnlyGitOutsideVault: boolean;
 	defaultView: ViewMode;
 	defaultTheme: ThemeMode;
 	defaultLineNumbers: boolean;
@@ -19,6 +20,7 @@ export interface CodeDiffSettings {
 
 export const DEFAULT_SETTINGS: CodeDiffSettings = {
 	pathBase: 'vault',
+	allowReadOnlyGitOutsideVault: false,
 	defaultView: 'unified',
 	defaultTheme: 'auto',
 	defaultLineNumbers: true,
@@ -55,6 +57,19 @@ export class CodeDiffSettingTab extends PluginSettingTab {
 						this.plugin.settings.pathBase = value as PathBase;
 						await this.plugin.saveSettings();
 					}),
+			);
+
+		new Setting(containerEl)
+			.setName('Allow read-only Git outside vault')
+			.setDesc(
+				'Allow code-diff blocks to read local Git repositories outside this vault. ' +
+				'The plugin only runs the read-only commands needed to resolve revisions and generate diffs.',
+			)
+			.addToggle((toggle) =>
+				toggle.setValue(this.plugin.settings.allowReadOnlyGitOutsideVault).onChange(async (value) => {
+					this.plugin.settings.allowReadOnlyGitOutsideVault = value;
+					await this.plugin.saveSettings();
+				}),
 			);
 
 		new Setting(containerEl)

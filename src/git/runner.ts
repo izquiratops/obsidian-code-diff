@@ -13,6 +13,8 @@ export interface GitResult {
 	exitCode: number;
 }
 
+export type ReadOnlyGitArgs = [command: 'rev-parse' | 'diff' | 'show', ...args: string[]];
+
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_MAX_BUFFER = 64 * 1024 * 1024;
 
@@ -45,6 +47,9 @@ export async function runGit(args: string[], options: GitRunOptions = {}): Promi
 					// prompt: there is nowhere for the user to type it.
 					GIT_TERMINAL_PROMPT: '0',
 					GIT_OPTIONAL_LOCKS: '0',
+					// A partial clone must not fetch a missing object as a side effect of
+					// rendering. Older Git versions safely ignore this variable.
+					GIT_NO_LAZY_FETCH: '1',
 					// Keep output stable regardless of the user's locale.
 					LC_ALL: 'C',
 				},
@@ -114,13 +119,26 @@ export async function runGit(args: string[], options: GitRunOptions = {}): Promi
 	});
 }
 
+/**
+ * The deliberately small Git surface available to repository-backed blocks.
+ * Keeping this separate from the general runner makes a write-capable command
+ * a type error in production code and rejects it at runtime as a second line
+ * of defence.
+ */
+export async function runReadOnlyGit(args: ReadOnlyGitArgs, options: GitRunOptions = {}): Promise<GitResult> {
+	if (args[0] !== 'rev-parse' && args[0] !== 'diff' && args[0] !== 'show') {
+		throw new DiffError('Blocked Git command', `\`git ${args[0]}\` is not available to code-diff blocks.`);
+	}
+	return runGit(args, options);
+}
+
 /** Runs a Git command and turns a non-zero exit into a `DiffError`. */
 export async function runGitOrThrow(
-	args: string[],
+	args: ReadOnlyGitArgs,
 	options: GitRunOptions,
 	failure: { message: string; detail?: string },
 ): Promise<string> {
-	const result = await runGit(args, options);
+	const result = await runReadOnlyGit(args, options);
 
 	if (result.exitCode !== 0) {
 		const detail = [failure.detail, `git ${args.join(' ')}`, result.stderr.trim()]

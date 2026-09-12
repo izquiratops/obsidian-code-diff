@@ -158,7 +158,11 @@ export class CodeDiffBlock extends MarkdownRenderChild {
 					paths: config.paths,
 					context: config.context,
 				},
-				{ base: this.resolveBase() },
+				{
+					base: this.resolveBase(),
+					vaultPath: this.blockCtx.vaultPath,
+					allowReadOnlyGitOutsideVault: settings.allowReadOnlyGitOutsideVault,
+				},
 			),
 		};
 	}

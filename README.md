@@ -119,6 +119,10 @@ Here's a list of every setting allowed in the frontmatter.
 You can set defaults for the presentation options in the plugin settings.
 A block always wins over the setting.
 
+Generated diffs are limited to repositories inside the current vault by
+default. To use a local repository elsewhere, explicitly enable **Allow
+read-only Git outside vault** in the plugin settings.
+
 ## Security & privacy
 
 This plugin is flagged as **shell execution** because generating a diff
@@ -131,15 +135,17 @@ from a repository means running `git`.
   The plugin **never** writes to a repository, never stages, commits, pushes or fetches.
 - **How it runs.** Git is spawned directly with an argument list:
   - `execFile`, so nothing in a note can be interpreted as shell syntax.
-  - External diff drivers and pagers configured in a repository are explicitly disabled using `--no-ext-diff` and `--no-pager`.
+  - External diff drivers, text-conversion filters and pagers configured in a repository are explicitly disabled using `--no-ext-diff`, `--no-textconv` and `--no-pager`.
   - Git will never prompt for credentials.
   - Every invocation has a 30-second timeout and a bounded output size.
 - **When it runs.** Only when a `code-diff` block sets `repo:`. Blocks with a
   pasted diff don't need to touch `git`, the job is already done!
-- **What it can read.** A `repo:` block can point at any local repository your
-  user account can read, including ones **outside the vault**. Please, treat `repo:` blocks
-  in notes you did not write yourself with the same care as any other content
-  that references files on your machine.
+- **What it can read.** By default, a `repo:` block can only point at a local
+  repository inside the current vault. Reading a repository **outside the
+  vault** requires the user to explicitly enable **Allow read-only Git outside
+  vault** in the plugin settings. Please treat `repo:` blocks in notes you did
+  not write yourself with the same care as any other content that references
+  files on your machine.
 - **Network & telemetry.** Nada. The plugin makes no network requests and
   collects no data. Remote repository URLs are currently recognised but rejected.
 

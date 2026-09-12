@@ -1,5 +1,5 @@
 import { DiffError } from '../errors.ts';
-import { runGit, runGitOrThrow } from './runner.ts';
+import { runGitOrThrow, runReadOnlyGit } from './runner.ts';
 import type { GitRunOptions } from './runner.ts';
 
 export interface RevisionRange {
@@ -26,7 +26,7 @@ export class LocalRepository {
 
 	/** Verifies the path exists and is inside a Git work tree or bare repository. */
 	async assertValid(options: GitRunOptions): Promise<void> {
-		const result = await runGit(['rev-parse', '--git-dir'], { ...options, cwd: this.path });
+		const result = await runReadOnlyGit(['rev-parse', '--git-dir'], { ...options, cwd: this.path });
 
 		if (result.exitCode === 0) return;
 
@@ -36,9 +36,8 @@ export class LocalRepository {
 		}
 
 		// Git gives the same exit code (128) for all of these, so the stderr text
-		// is the only way to tell them apart. Matching English text is safe here
-		// because `runGit` (git/runner.ts) always sets `LC_ALL: 'C'`, so Git's
-		// message is not affected by the user's locale.
+		// is the only way to tell them apart. Matching English text is safe as far
+		// `LC_ALL: 'C'` is enabled.
 		if (
 			stderr.includes('no such file or directory') ||
 			stderr.includes('cannot change to') ||
@@ -59,7 +58,7 @@ export class LocalRepository {
 
 	/** Resolves a revision to a full object id, or throws `Diff not found`. */
 	async resolveRevision(revision: string, options: GitRunOptions): Promise<string> {
-		const result = await runGit(['rev-parse', '--verify', '--quiet', '--end-of-options', `${revision}^{commit}`], {
+		const result = await runReadOnlyGit(['rev-parse', '--verify', '--quiet', '--end-of-options', `${revision}^{commit}`], {
 			...options,
 			cwd: this.path,
 		});
@@ -77,7 +76,7 @@ export class LocalRepository {
 
 	/** Returns true when the commit has at least one parent. */
 	async hasParent(sha: string, options: GitRunOptions): Promise<boolean> {
-		const result = await runGit(['rev-parse', '--verify', '--quiet', '--end-of-options', `${sha}^1^{commit}`], {
+		const result = await runReadOnlyGit(['rev-parse', '--verify', '--quiet', '--end-of-options', `${sha}^1^{commit}`], {
 			...options,
 			cwd: this.path,
 		});
@@ -104,6 +103,7 @@ export class LocalRepository {
 					'show',
 					'--no-color',
 					'--no-ext-diff',
+					'--no-textconv',
 					'--format=',
 					'--patch',
 					'--first-parent',
@@ -125,7 +125,17 @@ export class LocalRepository {
 		const to = await this.resolveRevision(toRef, runOptions);
 
 		const patch = await runGitOrThrow(
-			['diff', '--no-color', '--no-ext-diff', ...contextArgs, '--end-of-options', from, to, ...pathArgs],
+			[
+				'diff',
+				'--no-color',
+				'--no-ext-diff',
+				'--no-textconv',
+				...contextArgs,
+				'--end-of-options',
+				from,
+				to,
+				...pathArgs,
+			],
 			runOptions,
 			{ message: 'Could not generate diff' },
 		);
