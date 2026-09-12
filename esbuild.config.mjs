@@ -28,6 +28,9 @@ const ctx = await esbuild.context({
     ...builtinModules,
     ...builtinModules.map((m) => `node:${m}`),
   ],
+  supported: {
+    'dynamic-import': false
+  },
   plugins: [shikiSubset()],
   format: 'cjs',
   target: 'es2022',
