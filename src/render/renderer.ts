@@ -1,4 +1,10 @@
-import { CodeView, type CodeViewItem, type CodeViewOptions, type FileDiffMetadata } from '@pierre/diffs';
+import {
+	CodeView,
+	DEFAULT_CODE_VIEW_LAYOUT,
+	type CodeViewItem,
+	type CodeViewOptions,
+	type FileDiffMetadata,
+} from '@pierre/diffs';
 
 import type { DiffConfig } from '../config/schema.ts';
 import { fileItemId, parsePatch } from './patch.ts';
@@ -70,6 +76,11 @@ export class DiffRenderer {
 			diffStyle: config.view,
 			theme: resolveThemePair(config),
 			themeType: this.themeType,
+			layout: {
+				...DEFAULT_CODE_VIEW_LAYOUT,
+				paddingTop: 0,
+				paddingBottom: 0,
+			},
 			disableLineNumbers: !config.lineNumbers,
 			disableFileHeader: !config.fileHeader,
 			overflow: config.wrap ? 'wrap' : 'scroll',
