@@ -53,24 +53,20 @@
   }
 }
 
+.code-diff-state-with-detail {
+  align-items: flex-start;
+}
+
 .code-diff-state-error {
   border-color: var(--text-error);
   color: var(--text-error);
 }
 
-/* ~~~ Diagnostics and warnings ~~~ */
-
-.code-diff-details {
-  margin-top: var(--size-4-2);
-  font-size: var(--font-smallest);
-  color: var(--text-muted);
+.code-diff-state-content {
+  min-width: 0;
 }
 
-.code-diff-details>summary {
-  cursor: pointer;
-}
-
-.code-diff-details-body {
+.code-diff-state-detail {
   margin: var(--size-4-2) 0 0;
   max-height: 18em;
   overflow: auto;
@@ -78,6 +74,7 @@
   word-break: break-word;
 }
 
+/* ~~~ Warnings ~~~ */
 .code-diff-warnings {
   display: flex;
   align-items: flex-start;
